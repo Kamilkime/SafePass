@@ -1,0 +1,29 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>SafePass - Manager</title>
+
+        <link rel="stylesheet" type="text/css" href="/style.css"/>
+    </head>
+    <body>
+        <p>Login history of <b><span th:text="${username}"></span></b></p>
+        <a href="/manager"><button>Go back to manager</button></a>
+        <a href="/logout"><button>Logout</button></a>
+
+        <br/><br/><br/>
+
+        <table>
+            <tr>
+                <th>Login IP</th>
+                <th>Browser</th>
+                <th>Date [dd/mm/yyyy]</th>
+            </tr>
+            <tr th:each="entry : ${entries}">
+                <td th:text="${entry.ip}"></td>
+                <td th:text="${entry.browser}"></td>
+                <td th:text="${entry.time}"></td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>SafePass - Manager</title>
+
+        <link rel="stylesheet" type="text/css" href="/style.css"/>
+        <script async type="application/javascript" src="/passwordMeter.js"></script>
+    </head>
+    <body>
+        <p th:unless="${newEntry}">Edit entry for <b><span th:text="${website}"></span></b></p>
+        <p th:if="${newEntry}">Add new entry</p>
+
+        <br/>
+
+        <form action="/editEntry" method="POST">
+            <input type="text" name="website" placeholder="Website" th:value="${website}" required/>
+            <input type="text" name="login" placeholder="Login" th:value="${login}" required/>
+            <input id="password" type="password" name="password" placeholder="Password" th:value="${password}" required/>
+            <input type="submit" value="Save entry"/>
+        </form>
+
+        <br/>
+        <div class="rating"></div>
+    </body>
+</html>

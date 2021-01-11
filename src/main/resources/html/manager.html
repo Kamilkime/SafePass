@@ -1,0 +1,34 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>SafePass - Manager</title>
+
+        <link rel="stylesheet" type="text/css" href="/style.css"/>
+        <script type="application/javascript" src="/copyPassword.js"></script>
+    </head>
+    <body>
+        <p>Hello <b><span th:text="${username}"></span></b></p>
+        <a href="/loginHistory"><button>Login history</button></a>
+        <a href="/editEntry?entryID=new"><button>Add new entry</button></a>
+        <a href="/logout"><button>Logout</button></a>
+
+        <br/><br/><br/>
+
+        <p th:if="${#lists.isEmpty(entries)}">You don't have any entries in your safe</p>
+        <table th:unless="${#lists.isEmpty(entries)}">
+            <tr>
+                <th>Website</th>
+                <th>Username</th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr th:each="entry : ${entries}">
+                <td th:text="${entry.website}"></td>
+                <td th:text="${entry.login}"></td>
+                <td><button th:onclick="copyPassword([[${entry.id}]])">Copy password</button></td>
+                <td><a th:href="@{/editEntry(entryID=${entry.id})}"><button>Edit entry</button></a></td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>SafePass - Login</title>
+    </head>
+    <body>
+        <p>Log in to your SafePass account</p>
+
+        <p th:if="${logout}">Succesfully logged out!</p>
+        <p th:if="${registered}">Your account has been created, please verify your account before logging in!</p>
+        <p th:if="${loginDelay}">You need to wait <b><span th:text="${loginDelay}"></span></b> more seconds before next login attempt!</p>
+        <p th:if="${loginFailed}">Login failed, please try again!</p>
+        <p th:if="${changeRequest}">Your password change link has been sent!</p>
+        <p th:if="${passwordReset}">Your password has been reset, you can now log in!</p>
+        <p th:if="${passwordNotReset}">Your password could not be reset, please try again!</p>
+        <p th:if="${emailVerified}">Your account has been verified, you can now log in!</p>
+        <p th:if="${emailNotVerified}">You need to verify your account before you can log in!</p>
+
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Username" required/>
+            <input type="password" name="password" placeholder="Password" required/>
+            <input type="submit" value="Log in"/>
+        </form>
+
+        <br/>
+        <a href="/requestRestore"><button>Request password restore</button></a>
+    </body>
+</html>
