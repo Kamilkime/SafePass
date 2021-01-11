@@ -1,0 +1,43 @@
+table, th, td {
+    //border: 1px solid black;
+    padding: 5px;
+}
+
+table {
+    border-spacing: 15px;
+}
+
+.veryweakPassword {
+    color: #8B0000;
+    font-weight: bold;
+}
+
+.weakPassword {
+    color: #FF0000;
+    font-weight: bold;
+}
+
+.moderatePassword {
+    color: #F4A460;
+    font-weight: bold;
+}
+
+.strongPassword {
+    color: #2E8B57;
+    font-weight: bold;
+}
+
+.verystrongPassword {
+    color: #006400;
+    font-weight: bold;
+}
+
+.passwordsNotMatching {
+    color: #8B0000;
+    font-weight: bold;
+}
+
+.emailInvalid {
+    color: #8B0000;
+    font-weight: bold;
+}
