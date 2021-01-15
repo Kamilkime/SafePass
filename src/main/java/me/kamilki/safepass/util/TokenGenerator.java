@@ -31,12 +31,12 @@ public final class TokenGenerator {
         return entryID;
     }
 
-    public static String newRestoreToken(final Database database) {
+    public static String newResetToken(final Database database) {
         String restoreToken;
 
         do {
             restoreToken = newToken(64);
-        } while (database.restoreTokenExists(restoreToken));
+        } while (database.resetTokenExists(restoreToken));
 
         return restoreToken;
     }

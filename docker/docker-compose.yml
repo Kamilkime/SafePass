@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  mariadb:
+    image: mariadb
+    environment:
+    - "MYSQL_ROOT_PASSWORD=root"
+    - "MYSQL_RANDOM_ROOT_PASSWORD=yes"
+    - "MYSQL_DATABASE=${DB_NAME}"
+    - "MYSQL_USER=${DB_USER}"
+    - "MYSQL_PASSWORD=${DB_PASSWORD}"
+  safepass:
+    build: .
+    image: safepass
+    depends_on:
+    - mariadb
+    ports:
+    - "8080:8080"
+    env_file:
+    - .env
+  nginx:
+    image: nginx
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - "./nginx.conf:/etc/nginx/nginx.conf"
+    - "./certs:/etc/nginx/certs"

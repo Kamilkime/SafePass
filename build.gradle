@@ -1,9 +1,10 @@
 plugins {
-    id 'java-library'
+    id "java-library"
+    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
-group 'me.kamilki'
-version '1.0'
+group "me.kamilki"
+version "1.0"
 
 repositories {
     mavenCentral()
@@ -17,4 +18,12 @@ dependencies {
     implementation "mysql:mysql-connector-java:8.0.22"
     implementation "at.favre.lib:bcrypt:0.9.0"
     implementation "commons-validator:commons-validator:1.7"
+}
+
+shadowJar {
+    archiveFileName = "SafePass.jar"
+
+    manifest {
+        attributes "Main-Class": "me.kamilki.safepass.SafePass"
+    }
 }

@@ -8,18 +8,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public final class MySQLConnection {
 
     private final HikariDataSource dataSource;
 
-    public MySQLConnection(final String... config) {
+    public MySQLConnection() {
         final HikariConfig hikariConfig = new HikariConfig();
 
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + config[0] + ":" + config[1] + "/" + config[2] + "?useSSL=" + config[3]);
-        hikariConfig.setUsername(config[4]);
-        hikariConfig.setPassword(config[5]);
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + System.getenv("DB_HOST") + ":" + System.getenv("DB_PORT") + "/" +
+                System.getenv("DB_NAME") + "?useSSL=false");
+        hikariConfig.setUsername(System.getenv("DB_USER"));
+        hikariConfig.setPassword(System.getenv("DB_PASSWORD"));
 
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -64,10 +64,6 @@ public final class MySQLConnection {
                 connection.get().close();
             } catch (final SQLException ignored) {}
         }
-    }
-
-    public void query(final String query, final Consumer<Optional<ResultSet>> handler, final Object... queryReplacements) {
-        handler.accept(this.query(query, queryReplacements));
     }
 
     public int update(final String update, final Object... updateReplacements) {

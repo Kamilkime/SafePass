@@ -38,8 +38,6 @@ public final class ManagerController {
             model.put("website", "");
             model.put("login", "");
             model.put("password", "");
-
-            ctx.sessionAttribute("entryID", TokenGenerator.newEntryID(database));
         } else {
             final Optional<SafeEntry> safeEntryOptional = database.getSafeEntry(entryID);
             if (!safeEntryOptional.isPresent()) {
@@ -66,15 +64,18 @@ public final class ManagerController {
             model.put("website", EncryptionUtil.decrypt(safeEntry.getWebsite(), decryptionKey));
             model.put("login", EncryptionUtil.decrypt(safeEntry.getLogin(), decryptionKey));
             model.put("password", EncryptionUtil.decrypt(safeEntry.getPassword(), decryptionKey));
-
-            ctx.sessionAttribute("entryID", safeEntry.getId());
         }
 
+        ctx.sessionAttribute("entryID", entryID);
         ctx.render("/html/editEntry.html", model);
     }
 
     public static void handleEditPost(final Context ctx, final Database database) {
-        final String entryID = ctx.sessionAttribute("entryID");
+        String entryID = ctx.sessionAttribute("entryID");
+        if ("new".equals(entryID)) {
+            entryID = TokenGenerator.newEntryID(database);
+        }
+
         if (entryID == null || entryID.length() != 20) {
             ctx.redirect("/manager");
             return;

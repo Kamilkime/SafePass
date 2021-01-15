@@ -8,18 +8,14 @@ import me.kamilki.safepass.dao.mysql.MySQLDatabase;
 import java.util.HashMap;
 import java.util.Map;
 
-// user: safepass
-// pass: dd*AkUXxH@997T!L!BwMBw6G4
-
 public final class SafePass {
 
     public static final Map<String, Integer> USER_SESSIONS = new HashMap<>();
     public static final Map<String, byte[]> USER_ENCRYPTION = new HashMap<>();
-    public static final Map<String, String> CSRF_PROTECTION = new HashMap<>();
 
     public static void main(final String[] args) {
         final Javalin app = Javalin.create(config -> config.addStaticFiles("/static")).start(8080);
-        final Database database = new MySQLDatabase("127.0.0.1", "3306", "safepass", "false", "safepass", "dd*AkUXxH@997T!L!BwMBw6G4");
+        final Database database = new MySQLDatabase();
 
         app.get("/", ctx -> ctx.render("/html/index.html"));
 
@@ -32,11 +28,11 @@ public final class SafePass {
 
         app.get("/verify", ctx -> VerificationController.handleVerify(ctx, database));
 
-        app.get("/requestRestore", ctx -> PasswordController.servePasswordChangeRequestPage(ctx, database));
-        app.post("/requestRestore", ctx -> PasswordController.handlePasswordChangeRequestPost(ctx, database));
+        app.get("/requestPasswordReset", PasswordController::servePasswordChangeRequestPage);
+        app.post("/requestPasswordReset", ctx -> PasswordController.handlePasswordChangeRequestPost(ctx, database));
 
-        app.get("/restorePassword", ctx -> PasswordController.servePasswordChangePage(ctx, database));
-        app.post("/restorePassword", ctx -> PasswordController.handlePasswordChangePost(ctx, database));
+        app.get("/resetPassword", ctx -> PasswordController.servePasswordChangePage(ctx, database));
+        app.post("/resetPassword", ctx -> PasswordController.handlePasswordChangePost(ctx, database));
 
         app.before("/loginHistory", LoginController::checkLogin);
         app.get("/loginHistory", ctx -> HistoryController.serveHistoryPage(ctx, database));

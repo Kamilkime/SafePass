@@ -21,8 +21,10 @@ public interface Database {
     void verifyUser(final int userID);
     boolean verificationTokenExists(final String verificationToken);
 
-    void addPasswordRestore(final int userID, final String restoreToken);
-    boolean restoreTokenExists(final String restoreToken);
+    void addPasswordReset(final int userID, final String resetToken, final long expiryTime);
+    void removePasswordReset(final String resetToken);
+    boolean resetTokenExists(final String resetToken);
+    boolean resetTokenExpired(final String resetToken);
     void changePassword(final int userID, final String password);
 
     boolean safeEntryExists(final String entryID);

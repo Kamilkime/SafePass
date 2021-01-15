@@ -5,6 +5,7 @@ import me.kamilki.safepass.entity.HistoryEntry;
 import me.kamilki.safepass.entity.SafeEntry;
 import me.kamilki.safepass.entity.User;
 import me.kamilki.safepass.util.EncryptionUtil;
+import me.kamilki.safepass.util.TokenGenerator;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,8 +18,8 @@ public final class MySQLDatabase implements Database {
 
     private final MySQLConnection mySQLConnection;
 
-    public MySQLDatabase(final String... config) {
-        this.mySQLConnection = new MySQLConnection(config);
+    public MySQLDatabase() {
+        this.mySQLConnection = new MySQLConnection();
         MySQLCreator.prepareTables(this.mySQLConnection);
     }
 
@@ -155,20 +156,45 @@ public final class MySQLDatabase implements Database {
     }
 
     @Override
-    public void addPasswordRestore(final int userID, final String restoreToken) {
-        this.mySQLConnection.update("INSERT INTO pass_resets VALUES (?, ?) ON DUPLICATE KEY UPDATE token = ?;", userID, restoreToken,
-                restoreToken);
+    public void addPasswordReset(final int userID, final String resetToken, final long expiryTime) {
+        this.mySQLConnection.update("INSERT INTO pass_resets VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = ?, expires = ?;",
+                userID, resetToken, expiryTime, resetToken, expiryTime);
     }
 
     @Override
-    public boolean restoreTokenExists(final String restoreToken) {
-        final Optional<ResultSet> resultSetOptional = this.mySQLConnection.query("SELECT * FROM pass_resets WHERE token = ?;", restoreToken);
+    public void removePasswordReset(final String resetToken) {
+        this.mySQLConnection.update("DELETE FROM pass_resets WHERE token = ?;", resetToken);
+    }
+
+    @Override
+    public boolean resetTokenExists(final String resetToken) {
+        final Optional<ResultSet> resultSetOptional = this.mySQLConnection.query("SELECT * FROM pass_resets WHERE token = ?;", resetToken);
         if (!resultSetOptional.isPresent()) {
             return true;
         }
 
         try {
             return resultSetOptional.get().next();
+        } catch (final SQLException exception) {
+            return true;
+        }
+    }
+
+    @Override
+    public boolean resetTokenExpired(final String resetToken) {
+        final Optional<ResultSet> resultSetOptional = this.mySQLConnection.query("SELECT expires FROM pass_resets WHERE token = ?;",
+                resetToken);
+
+        if (!resultSetOptional.isPresent()) {
+            return true;
+        }
+
+        try (final ResultSet resultSet = resultSetOptional.get()) {
+            if (!resultSet.next()) {
+                return true;
+            }
+
+            return resultSet.getLong("expires") < System.currentTimeMillis();
         } catch (final SQLException exception) {
             return true;
         }
@@ -249,8 +275,8 @@ public final class MySQLDatabase implements Database {
 
         try (final ResultSet resultSet = resultSetOptional.get()) {
             while (resultSet.next()) {
-                final String login = EncryptionUtil.decrypt(resultSet.getString("login"), decryptionKey);
-                final String website = EncryptionUtil.decrypt(resultSet.getString("website"), decryptionKey);
+                final String login = EncryptionUtil.decrypt(resultSet.getString("login"), decryptionKey).substring(8);
+                final String website = EncryptionUtil.decrypt(resultSet.getString("website"), decryptionKey).substring(8);
 
                 entries.add(new SafeEntry(resultSet.getString("id"), login, "", website, -1));
             }
@@ -264,9 +290,9 @@ public final class MySQLDatabase implements Database {
     @Override
     public void saveSafeEntry(final String entryID, final String website, final String login, final String password, final int userID,
                        final byte[] encryptionKey) {
-        final String encryptedWebsite = EncryptionUtil.encrypt(website, encryptionKey);
-        final String encryptedLogin = EncryptionUtil.encrypt(login, encryptionKey);
-        final String encryptedPassword = EncryptionUtil.encrypt(password, encryptionKey);
+        final String encryptedWebsite = EncryptionUtil.encrypt(TokenGenerator.newToken(8) + website, encryptionKey);
+        final String encryptedLogin = EncryptionUtil.encrypt(TokenGenerator.newToken(8) + login, encryptionKey);
+        final String encryptedPassword = EncryptionUtil.encrypt(TokenGenerator.newToken(8) + password, encryptionKey);
 
         this.mySQLConnection.update("INSERT INTO safe_entries VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE login = ?, password = ?," +
                 " website = ?, user_id = ?;", entryID, encryptedLogin, encryptedPassword, encryptedWebsite, userID, encryptedLogin,

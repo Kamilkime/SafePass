@@ -12,6 +12,9 @@ import java.util.Map;
 
 public final class PasswordController {
 
+    // Password reset token expires after 15 minutes
+    private static final long TOKEN_EXPIRES_AFTER = 15L * 60L * 1000L;
+
     public static void getPassword(final Context ctx, final Database database) {
         final String userToken = ctx.sessionAttribute("userToken");
         final int userID = SafePass.USER_SESSIONS.get(userToken);
@@ -34,39 +37,51 @@ public final class PasswordController {
             return;
         }
 
-        ctx.result(EncryptionUtil.decrypt(encryptedPassword, key));
+        ctx.result(EncryptionUtil.decrypt(encryptedPassword, key).substring(8));
     }
 
     public static void servePasswordChangePage(final Context ctx, final Database database) {
-        final String restoreToken = ctx.queryParam("restoreToken");
-        if (restoreToken == null || restoreToken.isEmpty()) {
+        final String resetToken = ctx.queryParam("resetToken");
+        if (resetToken == null || resetToken.isEmpty()) {
             LoginController.redirectLogin(ctx, "loginRedirect", "/manager");
             return;
         }
 
-        final int userID = database.getUserID(restoreToken, "pass_resets");
+        final int userID = database.getUserID(resetToken, "pass_resets");
         if (userID == -1) {
             LoginController.redirectLogin(ctx, "loginRedirect", "/manager");
+            return;
+        }
+
+        if (database.resetTokenExpired(resetToken)) {
+            database.removePasswordReset(resetToken);
+            LoginController.redirectLogin(ctx, "passwordResetExpired", true);
             return;
         }
 
         final Map<String, Object> model = new HashMap<>();
         model.put("username", database.getUsername(userID));
 
-        ctx.sessionAttribute("restoreToken", restoreToken);
-        ctx.render("/html/restorePassword.html", model);
+        ctx.sessionAttribute("resetToken", resetToken);
+        ctx.render("/html/resetPassword.html", model);
     }
 
     public static void handlePasswordChangePost(final Context ctx, final Database database) {
-        final String restoreToken = ctx.sessionAttribute("restoreToken");
-        if (restoreToken == null || restoreToken.isEmpty()) {
+        final String resetToken = ctx.sessionAttribute("resetToken");
+        if (resetToken == null || resetToken.isEmpty()) {
             LoginController.redirectLogin(ctx, "loginRedirect", "/manager");
             return;
         }
 
-        final int userID = database.getUserID(restoreToken, "pass_resets");
+        final int userID = database.getUserID(resetToken, "pass_resets");
         if (userID == -1) {
             LoginController.redirectLogin(ctx, "loginRedirect", "/manager");
+            return;
+        }
+
+        if (database.resetTokenExpired(resetToken)) {
+            database.removePasswordReset(resetToken);
+            LoginController.redirectLogin(ctx, "passwordResetExpired", true);
             return;
         }
 
@@ -84,12 +99,12 @@ public final class PasswordController {
 
         database.changePassword(userID, encryptedPassword);
 
-        ctx.sessionAttribute("restoreToken", null);
+        ctx.sessionAttribute("resetToken", null);
         LoginController.redirectLogin(ctx, "passwordReset", true);
     }
 
-    public static void servePasswordChangeRequestPage(final Context ctx, final Database database) {
-        ctx.render("/html/requestRestore.html");
+    public static void servePasswordChangeRequestPage(final Context ctx) {
+        ctx.render("/html/requestPasswordReset.html");
     }
 
     public static void handlePasswordChangeRequestPost(final Context ctx, final Database database) {
@@ -105,12 +120,13 @@ public final class PasswordController {
             return;
         }
 
-        final String restoreToken = TokenGenerator.newRestoreToken(database);
-        database.addPasswordRestore(userID, restoreToken);
+        final String resetToken = TokenGenerator.newResetToken(database);
+        database.addPasswordReset(userID, resetToken, System.currentTimeMillis() + TOKEN_EXPIRES_AFTER);
 
         System.out.println("Sending restore password link to " + username);
-        System.out.println("https://127.0.0.1/restorePassword?restoreToken=" + restoreToken);
-        System.out.println("http://127.0.0.1:8080/restorePassword?restoreToken=" + restoreToken);
+        System.out.println("The link will be valid for 15 minutes!");
+        System.out.println("https://127.0.0.1/resetPassword?resetToken=" + resetToken);
+        System.out.println("http://127.0.0.1:8080/resetPassword?resetToken=" + resetToken);
 
         LoginController.redirectLogin(ctx, "changeRequest", true);
     }

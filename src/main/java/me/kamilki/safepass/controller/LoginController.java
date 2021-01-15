@@ -16,7 +16,7 @@ public final class LoginController {
 
     private static final long LOGIN_DELAY = 5000L;
     private static final String[] LOGIN_ATTRIBUTES = new String[]{"logout", "registered", "loginDelay", "loginFailed", "changeRequest",
-            "passwordReset", "passwordNotReset", "emailVerified", "emailNotVerified"};
+            "passwordReset", "passwordNotReset", "passwordResetExpired", "emailVerified", "emailNotVerified"};
 
     private static final Map<String, Long> loginDelay = new HashMap<>();
 
